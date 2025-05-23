@@ -10,7 +10,7 @@ if not token:
     print("Error: GENIUS_API_TOKEN not set.")
     exit(1)
 
-genius = lyricsgenius.Genius(token)
+genius = lyricsgenius.Genius(token, verbose=False)
 
 # List of song titles (expand as needed)
 songs = [
