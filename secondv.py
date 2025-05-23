@@ -155,18 +155,21 @@ def main():
                     if selected_album:
                         print(f"Hint: The song is from the album '{selected_album}'.")
                     else:
-                        # Give the album as a hint
                         song_album = None
                         for album, songs in albums.items():
                             if song_title in songs:
                                 song_album = album
                                 break
                         print(f"Hint: The song is from the album '{song_album}'.")
+                elif hint_req == "n":
+                    # No hint, proceed to next guess
+                    break
                 elif hint_req == "g":
                     print(f"The answer was: {song_title}")
                     break
                 else:
                     print("Please enter 'y' for hint, 'n' for no, or 'g' to give up.")
+
 
 if __name__ == "__main__":
     main()
