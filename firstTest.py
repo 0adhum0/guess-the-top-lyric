@@ -19,7 +19,7 @@ def lyrics_clearer(lyrics):
 
 genius = lyricsgenius.Genius(token)
 
-url = "https://genius.com/Twenty-one-pilots-stressed-out-lyrics"
+url = input("Enter Song URL: ")
 if url:
     lyrics = genius.lyrics(song_url=url)
     clean_lyrics = lyrics_clearer(lyrics)
