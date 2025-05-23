@@ -55,6 +55,10 @@
 					document.getElementById(
 						"points"
 					).innerText = `Points: ${points}`;
+					// Automatically load next lyric after correct guess
+					setTimeout(() => {
+						fetchLyric();
+					}, 1000); // 1 second delay so user can see "Correct!"
 				}
 			}
 
