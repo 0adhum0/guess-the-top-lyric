@@ -128,8 +128,7 @@ def main():
             for line in lyrics:
                 used_lyrics_lines.add(line)
         else:
-            print(f"❌ Nope! It was: {song_title}")
-
+            print("❌ Nope!")
             while True:
                 hint_req = input("Need a hint? (y/n/g for give up): ").strip().lower()
                 if hint_req == "y":
