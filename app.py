@@ -12,6 +12,11 @@ genius.remove_section_headers = True
 
 app = Flask(__name__)
 
+@app.route('/api/lyric')
+def api_lyric():
+    return next_lyric()
+
+
 albums = {
     "Blurryface": [
         "Heavydirtysoul", "Stressed Out", "Ride", "Fairly Local", "Tear in My Heart",
