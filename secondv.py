@@ -131,11 +131,14 @@ def main():
             # All lyrics lines used, pick another song
             continue
 
+        print("\n---")  # Separator for new song
+
         # Pick a random lyric line as the puzzle
         lyric_line = random.choice(new_lyrics)
         hint_count = 0  # <-- Move this here, so it persists for this lyric line
 
         while True:
+            print()  # Blank line for readability
             print("Guess the song:")
             print(f"🧩: {lyric_line}")
 
