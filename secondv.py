@@ -31,6 +31,17 @@ def lyrics_clearer(lyrics):
     return clean_lines
 
 albums = {
+    "Twenty One Pilots": [
+        "Implicit Demand for Proof", "Fall Away", "The Pantaloon", "Addict with a Pen",
+        "Friend, Please", "March to the Sea", "Johnny Boy", "Oh Ms Believer",
+        "Air Catcher", "Trapdoor", "A Car, a Torch, a Death", "Taxi Cab",
+        "Before You Start Your Day", "Isle of Flightless Birds"
+    ],
+    "Regional at Best": [
+        "Guns for Hands", "Holding on to You", "Ode to Sleep", "Slowtown",
+        "Car Radio", "Forest", "Glowing Eyes", "Kitchen Sink", "Anathema",
+        "Lovely", "Ruby", "Trees", "Be Concerned", "Clear", "Screen", "House of Gold"
+    ],
     "Vessel": [
         "Ode to Sleep", "Holding on to You", "Migraine", "House of Gold", "Car Radio",
         "Semi-Automatic", "Screen", "The Run and Go", "Fake You Out", "Guns for Hands",
@@ -45,6 +56,15 @@ albums = {
         "Jumpsuit", "Levitate", "Morph", "My Blood", "Chlorine", "Smithereens",
         "Neon Gravestones", "The Hype", "Nico and the Niners", "Cut My Lip",
         "Bandito", "Pet Cheetah", "Legend", "Leave the City"
+    ],
+    "Scaled and Icy": [
+        "Good Day", "Choker", "Shy Away", "The Outside", "Saturday", "Never Take It",
+        "Mulberry Street", "Formidable", "Bounce Man", "No Chances", "Redecorate"
+    ],
+    "Clancy": [
+        "Overcompensate", "Next Semester", "Midwest Indigo", "Routines in the Night",
+        "Vignette", "The Craving (Jenna's Version)", "Lavish", "Navigating",
+        "Snap Back", "Oldies Station", "At the Risk of Feeling Dumb", "Paladin Strait"
     ]
 }
 
@@ -144,8 +164,6 @@ def main():
                         print(f"Hint: The song is from the album '{song_album}'.")
                 elif hint_req == "g":
                     print(f"The answer was: {song_title}")
-                    break
-                elif hint_req == "n":
                     break
                 else:
                     print("Please enter 'y' for hint, 'n' for no, or 'g' to give up.")
