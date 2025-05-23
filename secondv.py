@@ -130,18 +130,18 @@ def main():
         else:
             print(f"❌ Nope! It was: {song_title}")
 
-        hint_req = input("Need a hint? (y/n): ").strip().lower()
-        if hint_req == "y":
-            if selected_album:
-                print(f"Hint: The song is from the album '{selected_album}'.")
-            else:
-                # Give the album as a hint
-                song_album = None
-                for album, songs in albums.items():
-                    if song_title in songs:
-                        song_album = album
-                        break
-                print(f"Hint: The song is from the album '{song_album}'.")
+            hint_req = input("Need a hint? (y/n): ").strip().lower()
+            if hint_req == "y":
+                if selected_album:
+                    print(f"Hint: The song is from the album '{selected_album}'.")
+                else:
+                    # Give the album as a hint
+                    song_album = None
+                    for album, songs in albums.items():
+                        if song_title in songs:
+                            song_album = album
+                            break
+                    print(f"Hint: The song is from the album '{song_album}'.")
 
 if __name__ == "__main__":
     main()
