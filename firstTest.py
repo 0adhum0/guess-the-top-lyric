@@ -13,8 +13,9 @@ import lyricsgenius
 
 genius = lyricsgenius.Genius(token)
 
-song = genius.search_song("Stressed Out", "Twenty One Pilots")
-if song:
-    print(song.lyrics[:500])
+url = "https://genius.com/Twenty-one-pilots-stressed-out-lyrics"
+if url:
+    print(genius.lyrics(song_url=url)
+)
 else:
     print("Song not found.")
