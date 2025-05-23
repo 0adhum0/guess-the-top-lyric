@@ -151,21 +151,31 @@ def main():
                 break  # Exit the lyric guessing loop, go to next song
             else:
                 print("❌ Nope!")
+                hint_count = 0
                 while True:
                     hint_req = input("Need a hint? (y/g for give up): ").strip().lower()
                     if hint_req == "y":
-                        if selected_album:
-                            print(f"Hint: The song is from the album '{selected_album}'.")
+                        hint_count += 1
+                        if hint_count == 1:
+                            if selected_album:
+                                print(f"Hint: The song is from the album '{selected_album}'.")
+                            else:
+                                # Give the album as a hint
+                                song_album = None
+                                for album, songs in albums.items():
+                                    if song_title in songs:
+                                        song_album = album
+                                        break
+                                print(f"Hint: The song is from the album '{song_album}'.")
                         else:
-                            # Give the album as a hint
-                            song_album = None
-                            for album, songs in albums.items():
-                                if song_title in songs:
-                                    song_album = album
-                                    break
-                            print(f"Hint: The song is from the album '{song_album}'.")
-                        # After giving a hint, break to allow another guess for the same lyric
-                        break
+                            # Give another random line from the song (not the current lyric)
+                            other_lines = [line for line in lyrics if line != lyric_line]
+                            if other_lines:
+                                print("Second hint (another line from the song):")
+                                print(f"💡: {random.choice(other_lines)}")
+                            else:
+                                print("No more hints available.")
+                        break  # After hint, allow another guess
                     elif hint_req == "g":
                         print(f"The answer was: {song_title}")
                         break
