@@ -9,12 +9,22 @@ if not token:
     print("Error: GENIUS_API_TOKEN not set")
     exit(1)
 
+
+def lyrics_clearer(lyrics):
+    # Remove the "More" section from the lyrics
+    stepOne = lyrics.split("More\xa0")
+    del stepOne[0]
+    clean_lyrics = " ".join(stepOne)
+    return clean_lyrics
+
 genius = lyricsgenius.Genius(token)
 
 url = "https://genius.com/Twenty-one-pilots-stressed-out-lyrics"
 if url:
     lyrics = genius.lyrics(song_url=url)
-    clean_lyrics = lyrics.split("More\xa0")
+    clean_lyrics = lyrics_clearer(lyrics)
     print(clean_lyrics)
 else:
     print("Song not found.")
+
+
