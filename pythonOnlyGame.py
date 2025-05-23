@@ -3,19 +3,26 @@ import random
 from dotenv import load_dotenv
 import lyricsgenius
 
+# Load environment variables from .env file
 load_dotenv()
 token = os.environ.get("GENIUS_API_TOKEN")
 
+# Check if the Genius API token is set
 if not token:
     print("Error: GENIUS_API_TOKEN not set")
     exit(1)
 
+# Initialize the Genius API client
 genius = lyricsgenius.Genius(token, verbose=False)
 genius.skip_non_songs = True
 genius.excluded_terms = ["(Remix)", "(Live)"]
 genius.remove_section_headers = True
 
 def lyrics_clearer(lyrics):
+    """
+    Cleans up the lyrics by removing section headers, empty lines,
+    annotation remnants, and commentary blurbs.
+    """
     clean_lines = []
     for line in lyrics.strip().split("\n"):
         # Remove section headers like [Chorus], [Verse 1]
@@ -30,6 +37,7 @@ def lyrics_clearer(lyrics):
         clean_lines.append(line.strip())
     return clean_lines
 
+# Dictionary of albums and their songs
 albums = {
     "Twenty One Pilots": [
         "Implicit Demand for Proof", "Fall Away", "The Pantaloon", "Addict with a Pen",
@@ -69,6 +77,10 @@ albums = {
 }
 
 def fetch_song_lyrics(song_title):
+    """
+    Fetches and cleans the lyrics for a given song title using the Genius API.
+    Returns a list of lyric lines or None if not found.
+    """
     try:
         song = genius.search_song(song_title, artist="Twenty One Pilots")
         if not song:
@@ -79,10 +91,14 @@ def fetch_song_lyrics(song_title):
         return None
 
 def choose_song(album=None):
+    """
+    Chooses a random song title from the specified album.
+    If no album is specified, chooses from all songs.
+    """
     if album:
         song_list = albums.get(album, [])
     else:
-        # all songs from all albums
+        # Gather all songs from all albums
         song_list = []
         for songs in albums.values():
             song_list.extend(songs)
@@ -92,12 +108,16 @@ def choose_song(album=None):
     return random.choice(song_list)
 
 def main():
+    """
+    Main game loop. Handles user interaction, guessing, and hint logic.
+    """
     print("Choose a game mode:")
     print("1. All Songs")
     print("2. Choose Album")
     choice = input("Enter choice (1 or 2): ").strip()
     selected_album = None
 
+    # Album selection logic
     if choice == "2":
         print("\nAvailable albums:")
         for idx, album_name in enumerate(albums.keys(), 1):
@@ -112,8 +132,9 @@ def main():
 
     print("\nFetching songs... please wait.\n")
 
-    used_lyrics_lines = set()
+    used_lyrics_lines = set()  # Tracks lyric lines already used
 
+    # Main game loop: runs until user quits or no songs left
     while True:
         song_title = choose_song(selected_album)
         if not song_title:
@@ -125,18 +146,19 @@ def main():
             print(f"Could not fetch lyrics for {song_title}, trying another song...")
             continue
 
-        # Remove repeated lyric lines already used
+        # Remove lyric lines that have already been used
         new_lyrics = [line for line in lyrics if line not in used_lyrics_lines]
         if not new_lyrics:
-            # All lyrics lines used, pick another song
+            # All lyric lines used, pick another song
             continue
 
         print("\n---")  # Separator for new song
 
         # Pick a random lyric line as the puzzle
         lyric_line = random.choice(new_lyrics)
-        hint_count = 0  # <-- Move this here, so it persists for this lyric line
+        hint_count = 0  # Tracks how many hints have been given for this lyric
 
+        # Loop for guessing the current lyric line
         while True:
             print()  # Blank line for readability
             print("Guess the song:")
@@ -147,23 +169,26 @@ def main():
                 print("Thanks for playing!")
                 return
 
+            # Check if the guess is correct
             if guess == song_title.lower():
                 print("✅ Correct!")
-                # Mark these lines as used
+                # Mark all lines from this song as used
                 for line in lyrics:
                     used_lyrics_lines.add(line)
                 break  # Exit the lyric guessing loop, go to next song
             else:
                 print("❌ Nope!")
+                # Hint/give up loop
                 while True:
                     hint_req = input("Need a hint? (y/g for give up): ").strip().lower()
                     if hint_req == "y":
                         hint_count += 1
                         if hint_count == 1:
+                            # First hint: show album name
                             if selected_album:
                                 print(f"Hint: The song is from the album '{selected_album}'.")
                             else:
-                                # Give the album as a hint
+                                # Find and show the album for this song
                                 song_album = None
                                 for album, songs in albums.items():
                                     if song_title in songs:
@@ -171,7 +196,7 @@ def main():
                                         break
                                 print(f"Hint: The song is from the album '{song_album}'.")
                         else:
-                            # Give another random line from the song (not the current lyric)
+                            # Second hint: show another random line from the song
                             other_lines = [line for line in lyrics if line != lyric_line]
                             if other_lines:
                                 print("Second hint (another line from the song):")
@@ -180,6 +205,7 @@ def main():
                                 print("No more hints available.")
                         break  # After hint, break to allow another guess for the same lyric
                     elif hint_req == "g":
+                        # User gives up, show the answer
                         print(f"The answer was: {song_title}")
                         break
                     else:
