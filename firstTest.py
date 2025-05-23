@@ -14,7 +14,7 @@ genius = lyricsgenius.Genius(token)
 url = "https://genius.com/Twenty-one-pilots-stressed-out-lyrics"
 if url:
     lyrics = genius.lyrics(song_url=url)
-    clean_lyrics = lyrics.split("More ")
+    clean_lyrics = lyrics.split("More\xa0")
     print(clean_lyrics)
 else:
     print("Song not found.")
