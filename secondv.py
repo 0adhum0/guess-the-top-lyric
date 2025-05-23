@@ -1,58 +1,69 @@
 import os
 import random
+import logging
 from dotenv import load_dotenv
 import lyricsgenius
 
+# Setup
+logging.getLogger("lyricsgenius").setLevel(logging.CRITICAL)
 load_dotenv()
 token = os.environ.get("GENIUS_API_TOKEN")
 
 if not token:
-    print("Error: GENIUS_API_TOKEN not set.")
+    print("GENIUS_API_TOKEN not set.")
     exit(1)
 
-genius = lyricsgenius.Genius(token, verbose=False)
+genius = lyricsgenius.Genius(token, verbose=False, remove_section_headers=True, skip_non_songs=True)
+genius.timeout = 15
 
-# List of song titles (expand as needed)
-songs = [
-    "Stressed Out",
-    "Ride",
-    "Heathens",
-    "Tear in My Heart",
-    "Car Radio",
-    "Lane Boy",
-]
+# Get full list of songs by artist
+print("Fetching song list from Genius...")
+artist = genius.search_artist("Twenty One Pilots", max_songs=20, sort="popularity")
+songs = artist.songs
+print(f"Loaded {len(songs)} songs.\n")
 
-artist = "Twenty One Pilots"
-
-# Score
 score = 0
-rounds = 3  # you can make it infinite with while True
+rounds = 5
 
 for _ in range(rounds):
-    # Pick a random song
-    title = random.choice(songs)
-    song = genius.search_song(title, artist)
+    song = random.choice(songs)
+    title = song.title
+    lyrics_lines = song.lyrics.split("\n")
+    lyrics_lines = [line for line in lyrics_lines if line.strip() and not line.startswith("[")]
 
-    if not song:
-        print(f"Couldn't find lyrics for {title}")
+    if not lyrics_lines:
         continue
 
-    # Clean and split lyrics
-    lyrics = song.lyrics
-    lyrics_lines = lyrics.split("\n")
-    # Filter out empty and section headers like [Verse]
-    lyrics_lines = [line for line in lyrics_lines if line and not line.startswith("[")]
+    used_lines = []
+    line = random.choice(lyrics_lines)
+    used_lines.append(line)
 
-    # Pick a random line to show
-    random_line = random.choice(lyrics_lines)
-    print("\n🎵 Guess the song from this line:")
-    print(f"\"{random_line}\"\n")
+    print("\n🎵 Guess the song from this lyric line:")
+    print(f"\"{line}\"\n")
 
-    guess = input("Your guess: ").strip().lower()
-    if guess == title.lower():
-        print("✅ Correct!\n")
-        score += 1
-    else:
-        print(f"❌ Nope! It was: {title}\n")
+    # Input loop with hints
+    while True:
+        guess = input("Your guess (or type 'hint', 'skip', or 'quit'): ").strip().lower()
 
-print(f"Game over. Your score: {score}/{rounds}")
+        if guess == "quit":
+            print("Exiting game.")
+            exit(0)
+        elif guess == "skip":
+            print(f"Skipped. It was: {title}\n")
+            break
+        elif guess == "hint":
+            print(f"Hint: {len(title.split())} words, starts with \"{title[0]}\"")
+            if len(used_lines) < len(lyrics_lines):
+                new_line = random.choice([l for l in lyrics_lines if l not in used_lines])
+                used_lines.append(new_line)
+                print(f"Extra lyric line: \"{new_line}\"")
+            else:
+                print("No more hint lines available.")
+        elif guess == title.lower():
+            print("✅ Correct!\n")
+            score += 1
+            break
+        else:
+            print("❌ Incorrect. Try again or ask for a hint.")
+
+print(f"\n🏁 Game Over. Final score: {score}/{rounds}")
