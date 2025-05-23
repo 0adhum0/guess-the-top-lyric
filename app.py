@@ -1,16 +1,10 @@
-import os
-import random
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, jsonify, request, render_template
+import os, random
 from dotenv import load_dotenv
 import lyricsgenius
 
-# Load environment variables
 load_dotenv()
 token = os.environ.get("GENIUS_API_TOKEN")
-
-if not token:
-    raise RuntimeError("GENIUS_API_TOKEN not set in environment")
-
 genius = lyricsgenius.Genius(token, verbose=False)
 genius.skip_non_songs = True
 genius.excluded_terms = ["(Remix)", "(Live)"]
@@ -18,50 +12,18 @@ genius.remove_section_headers = True
 
 app = Flask(__name__)
 
-@app.route("/")
-def index():
-    return render_template("index.html")
-
 albums = {
-    "Twenty One Pilots": [
-        "Implicit Demand for Proof", "Fall Away", "The Pantaloon", "Addict with a Pen",
-        "Friend, Please", "March to the Sea", "Johnny Boy", "Oh Ms Believer",
-        "Air Catcher", "Trapdoor", "A Car, a Torch, a Death", "Taxi Cab",
-        "Before You Start Your Day", "Isle of Flightless Birds"
-    ],
-    "Regional at Best": [
-        "Guns for Hands", "Holding on to You", "Ode to Sleep", "Slowtown",
-        "Car Radio", "Forest", "Glowing Eyes", "Kitchen Sink", "Anathema",
-        "Lovely", "Ruby", "Trees", "Be Concerned", "Clear", "Screen", "House of Gold"
-    ],
-    "Vessel": [
-        "Ode to Sleep", "Holding on to You", "Migraine", "House of Gold", "Car Radio",
-        "Semi-Automatic", "Screen", "The Run and Go", "Fake You Out", "Guns for Hands",
-        "Trees", "Truce"
-    ],
     "Blurryface": [
         "Heavydirtysoul", "Stressed Out", "Ride", "Fairly Local", "Tear in My Heart",
         "Lane Boy", "The Judge", "Doubt", "Polarize", "We Don't Believe What's on TV",
         "Message Man", "Hometown", "Not Today", "Goner"
     ],
-    "Trench": [
-        "Jumpsuit", "Levitate", "Morph", "My Blood", "Chlorine", "Smithereens",
-        "Neon Gravestones", "The Hype", "Nico and the Niners", "Cut My Lip",
-        "Bandito", "Pet Cheetah", "Legend", "Leave the City"
-    ],
-    "Scaled and Icy": [
-        "Good Day", "Choker", "Shy Away", "The Outside", "Saturday", "Never Take It",
-        "Mulberry Street", "Formidable", "Bounce Man", "No Chances", "Redecorate"
-    ],
-    "Clancy": [
-        "Overcompensate", "Next Semester", "Midwest Indigo", "Routines in the Night",
-        "Vignette", "The Craving (Jenna's Version)", "Lavish", "Navigating",
-        "Snap Back", "Oldies Station", "At the Risk of Feeling Dumb", "Paladin Strait"
-    ]
+    # Add more if you want
 }
 
-used_lyrics_lines = set()
-current_song_data = {}  # To keep track of current lyric, song, album
+used_lines = set()
+current_song = None
+current_lyrics = []
 
 def lyrics_clearer(lyrics):
     clean_lines = []
@@ -79,89 +41,48 @@ def fetch_song_lyrics(song_title):
     try:
         song = genius.search_song(song_title, artist="Twenty One Pilots")
         if not song:
-            return None
+            return []
         return lyrics_clearer(song.lyrics)
     except Exception as e:
         print(f"Error fetching {song_title}: {e}")
-        return None
+        return []
 
-def choose_song():
-    # Choose from all albums for simplicity
-    song_list = []
-    for songs in albums.values():
-        song_list.extend(songs)
-    if not song_list:
-        return None
-    return random.choice(song_list)
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-def prepare_next_lyric():
-    global used_lyrics_lines, current_song_data
-    while True:
-        song_title = choose_song()
-        if not song_title:
-            return None
-        lyrics = fetch_song_lyrics(song_title)
-        if not lyrics:
-            continue
-        # Filter out used lines
-        new_lyrics = [line for line in lyrics if line not in used_lyrics_lines]
-        if not new_lyrics:
-            continue
+@app.route('/next-lyric')
+def next_lyric():
+    global current_song, current_lyrics, used_lines
 
-        lyric_line = random.choice(new_lyrics)
-        # Find album for song
-        song_album = None
-        for album, songs in albums.items():
-            if song_title in songs:
-                song_album = album
-                break
-        current_song_data = {
-            "lyric": lyric_line,
-            "song": song_title,
-            "album": song_album,
-            "lyrics_all": lyrics
-        }
-        return current_song_data
+    # If no current song or lyrics exhausted, pick a new song
+    if not current_lyrics:
+        available_songs = albums.get("Blurryface", [])
+        if not available_songs:
+            return jsonify({"status": "done", "message": "No songs available"})
+        current_song = random.choice(available_songs)
+        current_lyrics = [line for line in fetch_song_lyrics(current_song) if line not in used_lines]
+        if not current_lyrics:
+            return jsonify({"status": "done", "message": f"No lyrics found for {current_song}"})
 
-@app.route("/api/lyric")
-def api_lyric():
-    data = prepare_next_lyric()
-    if not data:
-        return jsonify({"error": "No songs/lyrics available"}), 404
+    # Pop a lyric line to send
+    lyric_line = current_lyrics.pop()
+    used_lines.add(lyric_line)
+
     return jsonify({
-        "lyric": data["lyric"],
-        "album": data["album"]
+        "status": "ok",
+        "lyric": lyric_line,
+        "song": current_song,
+        "album": "Blurryface"
     })
 
-@app.route("/api/guess", methods=["POST"])
-def api_guess():
-    global used_lyrics_lines, current_song_data
-    guess = request.json.get("guess", "").strip().lower()
-    if not current_song_data:
-        return jsonify({"error": "No lyric loaded"}), 400
-    correct_song = current_song_data["song"].lower()
-    if guess == correct_song:
-        # Mark all lyrics lines as used for this song
-        for line in current_song_data["lyrics_all"]:
-            used_lyrics_lines.add(line)
-        answer = current_song_data["song"]
-        current_song_data = {}
-        return jsonify({"correct": True, "message": f"Correct! The song was '{answer}'."})
-    else:
-        # User gave wrong guess, show song anyway after skipping
-        return jsonify({"correct": False, "message": "Wrong guess! Try again or skip."})
+@app.route('/reset')
+def reset_game():
+    global used_lines, current_lyrics, current_song
+    used_lines = set()
+    current_lyrics = []
+    current_song = None
+    return jsonify({"status": "ok", "message": "Game reset."})
 
-@app.route("/api/skip", methods=["POST"])
-def api_skip():
-    global used_lyrics_lines, current_song_data
-    if not current_song_data:
-        return jsonify({"error": "No lyric loaded"}), 400
-    # Mark all lyrics lines as used for this song (skip)
-    for line in current_song_data["lyrics_all"]:
-        used_lyrics_lines.add(line)
-    answer = current_song_data["song"]
-    current_song_data = {}
-    return jsonify({"message": f"Skipped! The song was '{answer}'."})
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)
