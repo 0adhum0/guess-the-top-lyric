@@ -2,80 +2,197 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<title>Guess the Song</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Guess the Twenty One Pilots Song 🎵</title>
 		<style>
+			@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap");
+
 			body {
-				font-family: Arial, sans-serif;
-				margin: 2em;
+				background: linear-gradient(135deg, #7bbfff, #a6c1ee);
+				font-family: "Montserrat", sans-serif;
+				color: #1f1f3d;
+				margin: 0;
+				padding: 0;
+				min-height: 100vh;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				gap: 1rem;
+				padding: 2rem;
 			}
-			#lyric {
-				font-size: 1.5em;
-				margin-bottom: 1em;
+
+			.container {
+				background: rgba(255 255 255 / 0.85);
+				border-radius: 12px;
+				box-shadow: 0 8px 24px rgba(118, 144, 255, 0.3);
+				width: 100%;
+				max-width: 450px;
+				padding: 2rem;
+				text-align: center;
 			}
+
+			h1 {
+				margin: 0 0 1rem;
+				color: #4e71ff;
+				font-weight: 700;
+				text-shadow: 1px 1px 6px rgba(78, 113, 255, 0.6);
+			}
+
+			.album-name {
+				font-size: 1.1rem;
+				font-weight: 600;
+				color: #6c7bff;
+				margin-bottom: 0.5rem;
+			}
+
+			.lyric-line {
+				font-size: 1.3rem;
+				font-style: italic;
+				margin-bottom: 1rem;
+				color: #3742fa;
+			}
+
+			input[type="text"] {
+				width: 80%;
+				padding: 0.5rem 1rem;
+				border: 2px solid #8caaff;
+				border-radius: 8px;
+				font-size: 1rem;
+				outline: none;
+				transition: border-color 0.3s ease;
+			}
+
+			input[type="text"]:focus {
+				border-color: #4e71ff;
+			}
+
+			button {
+				background: #4e71ff;
+				color: white;
+				border: none;
+				padding: 0.7rem 1.5rem;
+				border-radius: 10px;
+				font-weight: 600;
+				cursor: pointer;
+				transition: background-color 0.3s ease;
+				margin-left: 0.5rem;
+			}
+
+			button:hover {
+				background: #667aff;
+			}
+
 			#feedback {
-				margin-top: 1em;
-				font-weight: bold;
+				margin-top: 1rem;
+				font-weight: 600;
+				min-height: 1.5em;
+				color: #333;
+			}
+
+			#points {
+				margin-top: 1rem;
+				font-size: 1.2rem;
+				font-weight: 700;
+				color: #5769ff;
+			}
+
+			#skipBtn {
+				margin-top: 1rem;
+				background: #ff6f91;
+			}
+
+			#skipBtn:hover {
+				background: #ff4c74;
 			}
 		</style>
 	</head>
 	<body>
-		<h1>🎵 Guess the Song 🎵</h1>
-		<div id="lyric">Loading lyric...</div>
-		<input type="text" id="guessInput" placeholder="Your guess here" />
-		<button onclick="submitGuess()">Guess</button>
-		<button onclick="getHint()">Hint</button>
-		<button onclick="nextLyric()">Next</button>
-		<div id="feedback"></div>
-		<div id="points">Points: 0</div>
+		<div class="container">
+			<h1>Guess the Song 🎵</h1>
+			<div class="album-name" id="albumName">Loading album...</div>
+			<div class="lyric-line" id="lyricLine">Loading lyric...</div>
+
+			<input
+				type="text"
+				id="guessInput"
+				placeholder="Enter your guess here"
+				autocomplete="off"
+			/>
+			<button onclick="submitGuess()">Guess</button>
+
+			<button id="skipBtn" onclick="skipSong()">Skip & Reveal</button>
+
+			<div id="feedback"></div>
+			<div id="points">Points: 0</div>
+		</div>
 
 		<script>
-			let currentLyric = "";
+			let currentSong = null;
+			let currentAlbum = null;
 			let points = 0;
 
 			async function fetchLyric() {
-				const response = await fetch("/api/next");
-				const data = await response.json();
-				currentLyric = data.lyric;
-				document.getElementById("lyric").innerText = currentLyric;
-				document.getElementById("feedback").innerText = "";
+				document.getElementById("feedback").textContent = "";
 				document.getElementById("guessInput").value = "";
+				const response = await fetch("/api/lyric");
+				const data = await response.json();
+
+				if (data.lyric && data.song && data.album) {
+					currentSong = data.song;
+					currentAlbum = data.album;
+					document.getElementById(
+						"lyricLine"
+					).textContent = `"${data.lyric}"`;
+					document.getElementById(
+						"albumName"
+					).textContent = `Album: ${data.album}`;
+				} else {
+					document.getElementById("lyricLine").textContent =
+						"No more lyrics available!";
+					document.getElementById("albumName").textContent = "";
+				}
 			}
 
 			async function submitGuess() {
-				const guess = document.getElementById("guessInput").value;
+				const guess = document
+					.getElementById("guessInput")
+					.value.trim()
+					.toLowerCase();
+				if (!guess) return;
+
 				const response = await fetch("/api/guess", {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify({ guess }),
 				});
 				const data = await response.json();
-				document.getElementById("feedback").innerText = data.message;
+
+				const feedbackEl = document.getElementById("feedback");
 				if (data.correct) {
 					points += 1;
 					document.getElementById(
 						"points"
-					).innerText = `Points: ${points}`;
-					// Automatically load next lyric after correct guess
+					).textContent = `Points: ${points}`;
+					feedbackEl.textContent = "✅ Correct!";
 					setTimeout(() => {
 						fetchLyric();
-					}, 1000); // 1 second delay so user can see "Correct!"
+					}, 1200);
+				} else {
+					feedbackEl.textContent = "❌ Nope! Try again or Skip.";
 				}
 			}
 
-			async function getHint() {
-				const response = await fetch("/api/hint");
-				const data = await response.json();
-				document.getElementById(
-					"feedback"
-				).innerText = `Hint: ${data.hint}`;
+			async function skipSong() {
+				if (!currentSong) return;
+				const feedbackEl = document.getElementById("feedback");
+				feedbackEl.textContent = `⏭️ The answer was: "${currentSong}"`;
+				setTimeout(() => {
+					fetchLyric();
+				}, 2000);
 			}
 
-			function nextLyric() {
-				fetchLyric();
-			}
-
-			// Initialize the first lyric on page load
-			fetchLyric();
+			window.onload = fetchLyric;
 		</script>
 	</body>
 </html>
