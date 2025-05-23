@@ -1,6 +1,6 @@
 import os
 import random
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
 import lyricsgenius
 
@@ -17,6 +17,10 @@ genius.excluded_terms = ["(Remix)", "(Live)"]
 genius.remove_section_headers = True
 
 app = Flask(__name__)
+
+@app.route("/")
+def index():
+    return render_template("index.html")
 
 albums = {
     "Twenty One Pilots": [
