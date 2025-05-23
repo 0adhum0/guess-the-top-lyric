@@ -1,20 +1,16 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Guess the TOP Lyric</title>
+		<title>Guess the Top Lyric</title>
 	</head>
 	<body>
-		<h1>🧩 Guess the Twenty One Pilots Song</h1>
-		<p>{{ lyric_line }}</p>
-		<form method="POST">
-			<input
-				type="text"
-				name="guess"
-				placeholder="Your guess..."
-				required
-			/>
-			<input type="hidden" name="song_title" value="{{ song_title }}" />
-			<button type="submit">Submit</button>
-		</form>
+		<h1>Guess the Song</h1>
+		<p id="hint"></p>
+		<input type="text" id="guessInput" />
+		<button onclick="submitGuess()">Guess</button>
+		<p id="result"></p>
+		<p>Points: <span id="points">0</span></p>
+		<button onclick="newSong()">New Song</button>
+		<script src="/static/main.js"></script>
 	</body>
 </html>
