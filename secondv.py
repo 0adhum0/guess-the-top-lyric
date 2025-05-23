@@ -134,45 +134,46 @@ def main():
         # Pick a random lyric line as the puzzle
         lyric_line = random.choice(new_lyrics)
 
-        print("Guess the song:")
-        print(f"🧩: {lyric_line}")
+        while True:
+            print("Guess the song:")
+            print(f"🧩: {lyric_line}")
 
-        guess = input("Your guess (or 'q' to quit): ").strip().lower()
-        if guess == "q":
-            print("Thanks for playing!")
-            break
+            guess = input("Your guess (or 'q' to quit): ").strip().lower()
+            if guess == "q":
+                print("Thanks for playing!")
+                return
 
-        if guess == song_title.lower():
-            print("✅ Correct!")
-            # Mark these lines as used
-            for line in lyrics:
-                used_lyrics_lines.add(line)
-        else:
-            print("❌ Nope!")
-            while True:
-                hint_req = input("Need a hint? (y/g for give up): ").strip().lower()
-                if hint_req == "y":
-                    if selected_album:
-                        print(f"Hint: The song is from the album '{selected_album}'.")
+            if guess == song_title.lower():
+                print("✅ Correct!")
+                # Mark these lines as used
+                for line in lyrics:
+                    used_lyrics_lines.add(line)
+                break  # Exit the lyric guessing loop, go to next song
+            else:
+                print("❌ Nope!")
+                while True:
+                    hint_req = input("Need a hint? (y/g for give up): ").strip().lower()
+                    if hint_req == "y":
+                        if selected_album:
+                            print(f"Hint: The song is from the album '{selected_album}'.")
+                        else:
+                            # Give the album as a hint
+                            song_album = None
+                            for album, songs in albums.items():
+                                if song_title in songs:
+                                    song_album = album
+                                    break
+                            print(f"Hint: The song is from the album '{song_album}'.")
+                        # After giving a hint, break to allow another guess for the same lyric
+                        break
+                    elif hint_req == "g":
+                        print(f"The answer was: {song_title}")
+                        break
                     else:
-                        # Give the album as a hint
-                        song_album = None
-                        for album, songs in albums.items():
-                            if song_title in songs:
-                                song_album = album
-                                break
-                        print(f"Hint: The song is from the album '{song_album}'.")
-                    # After giving a hint, break to allow another guess
-                    break
-                elif hint_req == "g":
-                    print(f"The answer was: {song_title}")
-                    break
-                else:
-                    print("Please enter 'y' for hint or 'g' to give up.")
-            # If user chose 'g', skip to next song
-            if hint_req == "g":
-                continue
-            # Otherwise, let them guess again (loop continues)
+                        print("Please enter 'y' for hint or 'g' to give up.")
+                if hint_req == "g":
+                    break  # Exit the lyric guessing loop, go to next song
+        # ...continue main loop...
 
 
 if __name__ == "__main__":
