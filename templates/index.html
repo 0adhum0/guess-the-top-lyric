@@ -1,198 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<title>Guess the Twenty One Pilots Song 🎵</title>
-		<style>
-			@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap");
-
-			body {
-				background: linear-gradient(135deg, #7bbfff, #a6c1ee);
-				font-family: "Montserrat", sans-serif;
-				color: #1f1f3d;
-				margin: 0;
-				padding: 0;
-				min-height: 100vh;
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-				justify-content: center;
-				gap: 1rem;
-				padding: 2rem;
-			}
-
-			.container {
-				background: rgba(255 255 255 / 0.85);
-				border-radius: 12px;
-				box-shadow: 0 8px 24px rgba(118, 144, 255, 0.3);
-				width: 100%;
-				max-width: 450px;
-				padding: 2rem;
-				text-align: center;
-			}
-
-			h1 {
-				margin: 0 0 1rem;
-				color: #4e71ff;
-				font-weight: 700;
-				text-shadow: 1px 1px 6px rgba(78, 113, 255, 0.6);
-			}
-
-			.album-name {
-				font-size: 1.1rem;
-				font-weight: 600;
-				color: #6c7bff;
-				margin-bottom: 0.5rem;
-			}
-
-			.lyric-line {
-				font-size: 1.3rem;
-				font-style: italic;
-				margin-bottom: 1rem;
-				color: #3742fa;
-			}
-
-			input[type="text"] {
-				width: 80%;
-				padding: 0.5rem 1rem;
-				border: 2px solid #8caaff;
-				border-radius: 8px;
-				font-size: 1rem;
-				outline: none;
-				transition: border-color 0.3s ease;
-			}
-
-			input[type="text"]:focus {
-				border-color: #4e71ff;
-			}
-
-			button {
-				background: #4e71ff;
-				color: white;
-				border: none;
-				padding: 0.7rem 1.5rem;
-				border-radius: 10px;
-				font-weight: 600;
-				cursor: pointer;
-				transition: background-color 0.3s ease;
-				margin-left: 0.5rem;
-			}
-
-			button:hover {
-				background: #667aff;
-			}
-
-			#feedback {
-				margin-top: 1rem;
-				font-weight: 600;
-				min-height: 1.5em;
-				color: #333;
-			}
-
-			#points {
-				margin-top: 1rem;
-				font-size: 1.2rem;
-				font-weight: 700;
-				color: #5769ff;
-			}
-
-			#skipBtn {
-				margin-top: 1rem;
-				background: #ff6f91;
-			}
-
-			#skipBtn:hover {
-				background: #ff4c74;
-			}
-		</style>
-	</head>
-	<body>
-		<div class="container">
-			<h1>Guess the Song 🎵</h1>
-			<div class="album-name" id="albumName">Loading album...</div>
-			<div class="lyric-line" id="lyricLine">Loading lyric...</div>
-
-			<input
-				type="text"
-				id="guessInput"
-				placeholder="Enter your guess here"
-				autocomplete="off"
-			/>
-			<button onclick="submitGuess()">Guess</button>
-
-			<button id="skipBtn" onclick="skipSong()">Skip & Reveal</button>
-
-			<div id="feedback"></div>
-			<div id="points">Points: 0</div>
-		</div>
-
-		<script>
-			let currentSong = null;
-			let currentAlbum = null;
-			let points = 0;
-
-			async function fetchLyric() {
-				document.getElementById("feedback").textContent = "";
-				document.getElementById("guessInput").value = "";
-				const response = await fetch("/api/lyric");
-				const data = await response.json();
-
-				if (data.lyric && data.song && data.album) {
-					currentSong = data.song;
-					currentAlbum = data.album;
-					document.getElementById(
-						"lyricLine"
-					).textContent = `"${data.lyric}"`;
-					document.getElementById(
-						"albumName"
-					).textContent = `Album: ${data.album}`;
-				} else {
-					document.getElementById("lyricLine").textContent =
-						"No more lyrics available!";
-					document.getElementById("albumName").textContent = "";
-				}
-			}
-
-			async function submitGuess() {
-				const guess = document
-					.getElementById("guessInput")
-					.value.trim()
-					.toLowerCase();
-				if (!guess) return;
-
-				const response = await fetch("/api/guess", {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ guess }),
-				});
-				const data = await response.json();
-
-				const feedbackEl = document.getElementById("feedback");
-				if (data.correct) {
-					points += 1;
-					document.getElementById(
-						"points"
-					).textContent = `Points: ${points}`;
-					feedbackEl.textContent = "✅ Correct!";
-					setTimeout(() => {
-						fetchLyric();
-					}, 1200);
-				} else {
-					feedbackEl.textContent = "❌ Nope! Try again or Skip.";
-				}
-			}
-
-			async function skipSong() {
-				if (!currentSong) return;
-				const feedbackEl = document.getElementById("feedback");
-				feedbackEl.textContent = `⏭️ The answer was: "${currentSong}"`;
-				setTimeout(() => {
-					fetchLyric();
-				}, 2000);
-			}
-
-			window.onload = fetchLyric;
-		</script>
-	</body>
+<head>
+    <meta charset="UTF-8">
+    <title>Guess the TOP Lyric</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 Guess the Song 🎵</h1>
+        <div id="lyric-box" class="lyric">Loading lyric...</div>
+        <input type="text" id="guess-input" placeholder="Enter your guess">
+        <div class="buttons">
+            <button id="submit-btn">Guess</button>
+            <button id="skip-btn">Skip & Reveal</button>
+        </div>
+        <div id="feedback" class="feedback"></div>
+        <div id="song-reveal" class="reveal"></div>
+        <div class="points">Points: <span id="points">0</span></div>
+    </div>
+    <script src="/static/app.js"></script>
+</body>
 </html>
