@@ -1,55 +1,62 @@
-let currentAnswer = "";
+let currentLyric = "";
+let currentSong = "";
+let hintCount = 0;
+let usedLines = new Set();
 let points = 0;
 
+const lyricDisplay = document.getElementById("lyric");
+const guessInput = document.getElementById("guessInput");
+const resultDisplay = document.getElementById("result");
+const pointsDisplay = document.getElementById("points");
+
+function updatePoints(change) {
+	points += change;
+	pointsDisplay.textContent = points;
+}
+
 async function fetchLyric() {
-	const response = await fetch("/api/lyric");
-	const data = await response.json();
+	resultDisplay.textContent = "🎵 Loading...";
+	try {
+		const response = await fetch("/api/lyric");
+		const data = await response.json();
 
-	const lyricBox = document.getElementById("lyric-box");
-	const songReveal = document.getElementById("song-reveal");
-	const feedback = document.getElementById("feedback");
+		if (!data.lyric || usedLines.has(data.lyric)) {
+			fetchLyric();
+			return;
+		}
 
-	if (data.lyric) {
-		currentAnswer = data.title.toLowerCase();
-		lyricBox.textContent = data.lyric;
-		songReveal.textContent = "";
-		feedback.textContent = "";
-		document.getElementById("guess-input").value = "";
-	} else {
-		lyricBox.textContent = "No more lyrics available!";
-		currentAnswer = "";
+		currentLyric = data.lyric;
+		currentSong = data.song;
+		hintCount = 0;
+		lyricDisplay.textContent = currentLyric;
+		resultDisplay.textContent = "";
+	} catch (error) {
+		resultDisplay.textContent = "⚠️ Failed to load lyric. Try again.";
 	}
 }
 
-function updatePoints() {
-	document.getElementById("points").textContent = points;
-}
+document.getElementById("guessBtn").addEventListener("click", () => {
+	const guess = guessInput.value.trim().toLowerCase();
+	if (!guess) return;
 
-document.getElementById("submit-btn").addEventListener("click", () => {
-	const guessInput = document.getElementById("guess-input");
-	const feedback = document.getElementById("feedback");
-
-	if (!currentAnswer) return;
-
-	const userGuess = guessInput.value.trim().toLowerCase();
-	if (userGuess === currentAnswer) {
-		feedback.textContent = "✅ Correct!";
-		points += 1;
-		updatePoints();
-		setTimeout(fetchLyric, 1000);
+	if (guess === currentSong.toLowerCase()) {
+		resultDisplay.textContent = "✅ Correct!";
+		usedLines.add(currentLyric);
+		updatePoints(1);
+		guessInput.value = "";
+		setTimeout(fetchLyric, 1500);
 	} else {
-		feedback.textContent = "❌ Nope! Try again.";
+		resultDisplay.textContent = "❌ Nope. Try again!";
 	}
 });
 
-document.getElementById("skip-btn").addEventListener("click", () => {
-	const songReveal = document.getElementById("song-reveal");
-	if (currentAnswer) {
-		songReveal.textContent = `The answer was: ${currentAnswer}`;
-	}
-	setTimeout(fetchLyric, 2000);
+document.getElementById("skipBtn").addEventListener("click", () => {
+	resultDisplay.textContent = `❕ It was: ${currentSong}`;
+	usedLines.add(currentLyric);
+	updatePoints(-1);
+	guessInput.value = "";
+	setTimeout(fetchLyric, 1500);
 });
 
-window.onload = () => {
-	fetchLyric();
-};
+// Load the first lyric on page load
+fetchLyric();

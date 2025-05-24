@@ -1,24 +1,29 @@
+<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Guess the TOP Lyric</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-    <div class="container">
-        <h1>🎵 Guess the Song 🎵</h1>
-        <div id="lyric-box" class="lyric">Loading lyric...</div>
-        <input type="text" id="guess-input" placeholder="Enter your guess">
-        <div class="buttons">
-            <button id="submit-btn">Guess</button>
-            <button id="skip-btn">Skip & Reveal</button>
-        </div>
-        <div id="feedback" class="feedback"></div>
-        <div id="song-reveal" class="reveal"></div>
-        <div class="points">Points: <span id="points">0</span></div>
-    </div>
-    <script src="/static/app.js"></script>
-</body>
+	<head>
+		<meta charset="UTF-8" />
+		<title>Guess the Song 🎵</title>
+		<link rel="stylesheet" href="/static/style.css" />
+	</head>
+	<body>
+		<div class="container">
+			<h1>🎧 Guess the Song 🎧</h1>
+			<p id="lyric">Loading...</p>
+			<input
+				type="text"
+				id="guessInput"
+				placeholder="Enter your guess here"
+				autocomplete="off"
+			/>
+			<div class="buttons">
+				<button onclick="submitGuess()">Guess</button>
+				<button onclick="skipAndReveal()">Skip & Reveal</button>
+			</div>
+			<p id="feedback"></p>
+			<p id="points">Points: 0</p>
+		</div>
+
+		<script src="/static/app.js"></script>
+	</body>
 </html>
